@@ -7,7 +7,13 @@ public class Application {
 
     public static void main(String [] args) throws Exception {
 
-        int res = ToolRunner.run(new Configuration(), new ArrivalDelay(), args);
-        System.exit(res);
+        if(args[0].equals("arrivalDelay")) {
+            int res = ToolRunner.run(new Configuration(), new ArrivalDelay(), args);
+            System.exit(res);
+        }
+        else if(args[0].equals("analyze")) {
+            int res = ToolRunner.run(new Configuration(), new Analyze(), args);
+            System.exit(res);
+        }
     }
 }
