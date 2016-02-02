@@ -74,19 +74,35 @@ public class JoiningReducer extends Reducer<TaggedKey, FlightDataRecord, NullWri
 
     public String generateOutput(FlightDataRecord record1, FlightDataRecord record2) {
 
-        return record1.origin.toString() + "\t"
-                + record1.dest.toString()+ "\t"
-                + record2.dest.toString() + "\t"
-                + record1.date.toString() + "\t"
-                + record2.date.toString() + "\t"
-                + record1.depTime.toString() + "\t"
-                + record2.depTime.toString() + "\t"
-                + record1.delay.get() + "\t"
-                + record2.delay.get() + "\t"
-                + record1.airlineId.toString() + "\t"
-                + record2.airlineId.toString() + "\t"
-                + record1.uniqCarrier.toString() + "\t"
-                + record2.uniqCarrier.toString() + "\t"
-                + (record1.delay.get() + record2.delay.get());
+        StringBuilder sb = new StringBuilder();
+        sb.append(record1.origin.toString());
+        sb.append('\t');
+        sb.append(record1.dest.toString());
+        sb.append('\t');
+        sb.append(record2.dest.toString());
+        sb.append('\t');
+        sb.append(record1.date.toString());
+        sb.append('\t');
+        sb.append(record2.date.toString());
+        sb.append('\t');
+        sb.append(record1.depTime.toString());
+        sb.append('\t');
+        sb.append(record2.depTime.toString());
+        sb.append('\t');
+        sb.append(record1.delay.get());
+        sb.append('\t');
+        sb.append(record2.delay.get());
+        sb.append('\t');
+        sb.append(record1.airlineId.toString());
+        sb.append('\t');
+        sb.append(record2.airlineId.toString());
+        sb.append('\t');
+        sb.append(record1.uniqCarrier.toString());
+        sb.append('\t');
+        sb.append(record2.uniqCarrier.toString());
+        sb.append('\t');
+        sb.append(record1.delay.get() + record2.delay.get());
+
+        return sb.toString();
     }
 }
