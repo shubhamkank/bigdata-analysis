@@ -24,5 +24,9 @@ public class Application {
             int res = ToolRunner.run(new Configuration(), new PopularAirport(), args);
             System.exit(res);
         }
+        else if(args[0].equals("travel")) {
+            int res = ToolRunner.run(new Configuration(), new Travel(), args);
+            System.exit(res);
+        }
     }
 }
