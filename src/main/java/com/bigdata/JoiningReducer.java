@@ -51,15 +51,11 @@ public class JoiningReducer extends Reducer<TaggedKey, FlightDataRecord, NullWri
         try {
 
             for (int i = 0; i < tagZero.size(); i++) {
-                if (tagZero.get(i).depTime.get() > 1200) {
-                    continue;
-                }
+
                 Date date1 = dateFormat.parse(tagZero.get(i).date.toString());
 
                 for (int j = 0; j < tagOne.size(); j++) {
-                    if (tagOne.get(j).depTime.get() < 1200) {
-                        continue;
-                    }
+
                     Date date2 = dateFormat.parse(tagOne.get(j).date.toString());
 
                     calendar.setTime(date1);

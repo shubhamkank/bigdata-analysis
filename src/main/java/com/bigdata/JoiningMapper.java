@@ -37,6 +37,9 @@ public class JoiningMapper extends Mapper<Object, Text, TaggedKey, FlightDataRec
             taggedKey.joinKey = new Text(joinKey);
             taggedKey.tag = new IntWritable(0);
             record.tag = new Text("0");
+            if(record.depTime.get() > 1200) {
+                return;
+            }
             context.write(taggedKey, record);
         }
         else if(values.get(0).equals("1")) {
@@ -44,6 +47,9 @@ public class JoiningMapper extends Mapper<Object, Text, TaggedKey, FlightDataRec
             taggedKey.joinKey = new Text(joinKey);
             taggedKey.tag = new IntWritable(1);
             record.tag = new Text("1");
+            if(record.depTime.get() < 1200) {
+                return;
+            }
             context.write(taggedKey, record);
         }
     }
