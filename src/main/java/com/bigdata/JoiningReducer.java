@@ -2,8 +2,6 @@ package com.bigdata;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -30,8 +28,6 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
 
     protected Context context;
 
-    public static final Log LOG = LogFactory.getLog(JoiningReducer.class);
-
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private Calendar calendar = Calendar.getInstance();
     private static Splitter splitter = Splitter.on(',');
@@ -48,7 +44,7 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
         List<Text> tagZero = new ArrayList<>();
         List<Text> tagOne = new ArrayList<>();
 
-        LOG.info("Join Key: " + key.joinKey.toString());
+        System.out.println("JoinKey: " + key.joinKey.toString());
 
         for(Text value : values) {
 
