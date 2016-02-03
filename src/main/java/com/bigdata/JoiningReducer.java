@@ -2,6 +2,8 @@ package com.bigdata;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -19,9 +21,25 @@ import java.util.List;
  */
 public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text> {
 
+    private static enum ReduceSideCounter {
+        COLLECTED_COUNT
+    }
+
+    protected long numOfValues = 0;
+    protected long collected = 0;
+
+    protected Context context;
+
+    public static final Log LOG = LogFactory.getLog(JoiningReducer.class);
+
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private Calendar calendar = Calendar.getInstance();
     private static Splitter splitter = Splitter.on(',');
+
+    public void setup(Context context) throws IOException, InterruptedException {
+        super.setup(context);
+        this.context = context;
+    }
 
     @Override
     protected void reduce(TaggedKey key, Iterable<Text> values, Context context)
@@ -30,10 +48,15 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
         List<Text> tagZero = new ArrayList<>();
         List<Text> tagOne = new ArrayList<>();
 
+        LOG.info("Join Key: " + key.joinKey.toString());
 
         for(Text value : values) {
 
-            System.out.println("Key: " + key.joinKey + ", Value: " + value.toString());
+            numOfValues++;
+
+            if (this.numOfValues % 1000 == 0) {
+                context.setStatus("key: " + key.joinKey.toString() + " numOfValues: " + this.numOfValues);
+            }
 
             if(value.toString().startsWith("0")) {
                 tagZero.add(new Text(value));
@@ -43,7 +66,7 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
             }
         }
 
-        System.out.println("---------------------------------------------------------------------------");
+        context.setStatus("key: " + key.joinKey.toString() + " numOfValues: " + this.numOfValues);
 
         if(tagZero.isEmpty() || tagOne.isEmpty()) {
             return;
@@ -67,7 +90,10 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
                     if (date2.compareTo(calendar.getTime()) != 0) {
                         continue;
                     }
+                    collected++;
                     context.write(NullWritable.get(), new Text(generateOutput(zeroRow, oneRow)));
+                    context.getCounter(ReduceSideCounter.COLLECTED_COUNT).increment(1);
+                    context.setStatus("key: " + key.joinKey.toString() + " collected: " + this.collected);
                 }
             }
         } catch (ParseException pe) {
