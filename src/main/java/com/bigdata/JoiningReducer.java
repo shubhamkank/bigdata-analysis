@@ -1,7 +1,7 @@
 package com.bigdata;
 
-import org.apache.hadoop.io.DoubleWritable;
-import org.apache.hadoop.io.IntWritable;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -17,32 +17,33 @@ import java.util.List;
 /**
  * Created by shubham.kankaria on 01/02/16.
  */
-public class JoiningReducer extends Reducer<TaggedKey, FlightDataRecord, NullWritable, Text> {
+public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text> {
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private Calendar calendar = Calendar.getInstance();
+    private static Splitter splitter = Splitter.on(',');
 
     @Override
-    protected void reduce(TaggedKey key, Iterable<FlightDataRecord> values, Context context)
+    protected void reduce(TaggedKey key, Iterable<Text> values, Context context)
             throws IOException, InterruptedException {
 
-        List<FlightDataRecord> tagZero = new ArrayList<>();
-        List<FlightDataRecord> tagOne = new ArrayList<>();
+        List<Text> tagZero = new ArrayList<>();
+        List<Text> tagOne = new ArrayList<>();
 
 
-        for(FlightDataRecord value : values) {
+        for(Text value : values) {
 
-            if(value.tag.toString().equals("0")) {
-                tagZero.add(new FlightDataRecord(new Text(value.tag.toString()), new Text(value.origin.toString()),
-                        new Text(value.dest), new Text(value.airlineId), new Text(value.uniqCarrier),
-                        new Text(value.date), new IntWritable(value.depTime.get()), new DoubleWritable(value.delay.get())));
+            System.out.println("Key: " + key.joinKey + ", Value: " + value.toString());
+
+            if(value.toString().startsWith("0")) {
+                tagZero.add(new Text(value));
             }
-            else if(value.tag.toString().equals("1")) {
-                tagOne.add(new FlightDataRecord(new Text(value.tag.toString()), new Text(value.origin.toString()),
-                        new Text(value.dest), new Text(value.airlineId), new Text(value.uniqCarrier),
-                        new Text(value.date), new IntWritable(value.depTime.get()), new DoubleWritable(value.delay.get())));
+            else if(value.toString().startsWith("1")) {
+                tagOne.add(new Text(value));
             }
         }
+
+        System.out.println("---------------------------------------------------------------------------");
 
         if(tagZero.isEmpty() || tagOne.isEmpty()) {
             return;
@@ -52,11 +53,13 @@ public class JoiningReducer extends Reducer<TaggedKey, FlightDataRecord, NullWri
 
             for (int i = 0; i < tagZero.size(); i++) {
 
-                Date date1 = dateFormat.parse(tagZero.get(i).date.toString());
+                List<String> zeroRow = Lists.newArrayList(splitter.split(tagZero.get(i).toString()));
+                Date date1 = dateFormat.parse(zeroRow.get(5));
 
                 for (int j = 0; j < tagOne.size(); j++) {
 
-                    Date date2 = dateFormat.parse(tagOne.get(j).date.toString());
+                    List<String> oneRow = Lists.newArrayList(splitter.split(tagOne.get(j).toString()));
+                    Date date2 = dateFormat.parse(oneRow.get(5));
 
                     calendar.setTime(date1);
                     calendar.add(Calendar.DATE, 2);
@@ -64,7 +67,7 @@ public class JoiningReducer extends Reducer<TaggedKey, FlightDataRecord, NullWri
                     if (date2.compareTo(calendar.getTime()) != 0) {
                         continue;
                     }
-                    context.write(NullWritable.get(), new Text(generateOutput(tagZero.get(i), tagOne.get(j))));
+                    context.write(NullWritable.get(), new Text(generateOutput(zeroRow, oneRow)));
                 }
             }
         } catch (ParseException pe) {
@@ -72,36 +75,36 @@ public class JoiningReducer extends Reducer<TaggedKey, FlightDataRecord, NullWri
         }
     }
 
-    public String generateOutput(FlightDataRecord record1, FlightDataRecord record2) {
+    public String generateOutput(List<String> record1, List<String> record2) {
 
         StringBuilder sb = new StringBuilder();
-        sb.append(record1.origin.toString());
+        sb.append(record1.get(1));
         sb.append('\t');
-        sb.append(record1.dest.toString());
+        sb.append(record1.get(2));
         sb.append('\t');
-        sb.append(record2.dest.toString());
+        sb.append(record2.get(2));
         sb.append('\t');
-        sb.append(record1.date.toString());
+        sb.append(record1.get(5));
         sb.append('\t');
-        sb.append(record2.date.toString());
+        sb.append(record2.get(5));
         sb.append('\t');
-        sb.append(record1.depTime.toString());
+        sb.append(record1.get(6));
         sb.append('\t');
-        sb.append(record2.depTime.toString());
+        sb.append(record2.get(6));
         sb.append('\t');
-        sb.append(record1.delay.get());
+        sb.append(record1.get(7));
         sb.append('\t');
-        sb.append(record2.delay.get());
+        sb.append(record2.get(7));
         sb.append('\t');
-        sb.append(record1.airlineId.toString());
+        sb.append(record1.get(3));
         sb.append('\t');
-        sb.append(record2.airlineId.toString());
+        sb.append(record2.get(3));
         sb.append('\t');
-        sb.append(record1.uniqCarrier.toString());
+        sb.append(record1.get(4));
         sb.append('\t');
-        sb.append(record2.uniqCarrier.toString());
+        sb.append(record2.get(4));
         sb.append('\t');
-        sb.append(record1.delay.get() + record2.delay.get());
+        sb.append(Double.valueOf(record1.get(7)) + Double.valueOf(record2.get(7)));
 
         return sb.toString();
     }

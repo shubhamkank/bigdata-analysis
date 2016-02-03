@@ -3,6 +3,7 @@ package com.bigdata;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -30,7 +31,7 @@ public class Travel extends Configured implements Tool {
         job.setMapperClass(JoiningMapper.class);
         job.setReducerClass(JoiningReducer.class);
         job.setOutputKeyClass(TaggedKey.class);
-        job.setOutputValueClass(FlightDataRecord.class);
+        job.setOutputValueClass(Text.class);
         job.setPartitionerClass(TaggerJoiningPartitioner.class);
         job.setGroupingComparatorClass(TaggedJoiningGroupingComparator.class);
 
