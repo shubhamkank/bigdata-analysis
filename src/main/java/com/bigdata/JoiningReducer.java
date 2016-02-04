@@ -19,23 +19,12 @@ import java.util.List;
  */
 public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text> {
 
-    private static enum ReduceSideCounter {
-        COLLECTED_COUNT
-    }
-
     protected long numOfValues = 0;
     protected long collected = 0;
-
-    protected Context context;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private Calendar calendar = Calendar.getInstance();
     private static Splitter splitter = Splitter.on(',');
-
-    public void setup(Context context) throws IOException, InterruptedException {
-        super.setup(context);
-        this.context = context;
-    }
 
     @Override
     protected void reduce(TaggedKey key, Iterable<Text> values, Context context)
@@ -51,7 +40,7 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
             numOfValues++;
 
             if (this.numOfValues % 1000 == 0) {
-                context.setStatus("key: " + key.joinKey.toString() + " numOfValues: " + this.numOfValues);
+                System.out.println("Key: " + key.joinKey.toString() + ", numOfValues: " + numOfValues);
             }
 
             if(value.toString().startsWith("0")) {
@@ -61,8 +50,6 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
                 tagOne.add(new Text(value));
             }
         }
-
-        context.setStatus("key: " + key.joinKey.toString() + " numOfValues: " + this.numOfValues);
 
         if(tagZero.isEmpty() || tagOne.isEmpty()) {
             return;
@@ -88,10 +75,9 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
                     }
                     collected++;
                     context.write(NullWritable.get(), new Text(generateOutput(zeroRow, oneRow)));
-                    context.getCounter(ReduceSideCounter.COLLECTED_COUNT).increment(1);
-                    context.setStatus("key: " + key.joinKey.toString() + " collected: " + this.collected);
                 }
             }
+            System.out.println("Key: " + key.joinKey.toString() + ", collected: " + collected);
         } catch (ParseException pe) {
             pe.printStackTrace();
         }
