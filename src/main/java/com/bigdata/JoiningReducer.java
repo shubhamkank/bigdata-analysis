@@ -2,6 +2,8 @@ package com.bigdata;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -23,6 +25,8 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
     private Calendar calendar = Calendar.getInstance();
     private static Splitter splitter = Splitter.on(',');
 
+    public static final Log log = LogFactory.getLog(JoiningReducer.class);
+
     @Override
     protected void reduce(TaggedKey key, Iterable<Text> values, Context context)
             throws IOException, InterruptedException {
@@ -32,7 +36,7 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
 
         for(Text value : values) {
 
-            System.out.println("Key: " + key.joinKey.toString() + ", Value: " + value.toString());
+            log.info("Key: " + key.joinKey.toString() + ", Value: " + value.toString());
 
             if(value.toString().startsWith("0")) {
                 tagZero.add(new Text(value));
@@ -42,7 +46,7 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
             }
         }
 
-        System.out.println("--------------------------------------------------------------------");
+        log.info("Two separate lists (tagOne & tagZero) created...");
 
         if(tagZero.isEmpty() || tagOne.isEmpty()) {
             return;
@@ -69,7 +73,9 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
                     context.write(NullWritable.get(), new Text(generateOutput(zeroRow, oneRow)));
                 }
             }
+            log.info("Reduce Operation complete for key: " + key.joinKey.toString());
         } catch (ParseException pe) {
+            log.info("ParseException Occured...");
             pe.printStackTrace();
         }
     }
