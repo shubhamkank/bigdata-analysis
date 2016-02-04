@@ -19,9 +19,6 @@ import java.util.List;
  */
 public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text> {
 
-    protected long numOfValues = 0;
-    protected long collected = 0;
-
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private Calendar calendar = Calendar.getInstance();
     private static Splitter splitter = Splitter.on(',');
@@ -33,15 +30,9 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
         List<Text> tagZero = new ArrayList<>();
         List<Text> tagOne = new ArrayList<>();
 
-        System.out.println("JoinKey: " + key.joinKey.toString());
-
         for(Text value : values) {
 
-            numOfValues++;
-
-            if (this.numOfValues % 1000 == 0) {
-                System.out.println("Key: " + key.joinKey.toString() + ", numOfValues: " + numOfValues);
-            }
+            System.out.println("Key: " + key.joinKey.toString() + ", Value: " + value.toString());
 
             if(value.toString().startsWith("0")) {
                 tagZero.add(new Text(value));
@@ -50,6 +41,8 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
                 tagOne.add(new Text(value));
             }
         }
+
+        System.out.println("--------------------------------------------------------------------");
 
         if(tagZero.isEmpty() || tagOne.isEmpty()) {
             return;
@@ -73,11 +66,9 @@ public class JoiningReducer extends Reducer<TaggedKey, Text, NullWritable, Text>
                     if (date2.compareTo(calendar.getTime()) != 0) {
                         continue;
                     }
-                    collected++;
                     context.write(NullWritable.get(), new Text(generateOutput(zeroRow, oneRow)));
                 }
             }
-            System.out.println("Key: " + key.joinKey.toString() + ", collected: " + collected);
         } catch (ParseException pe) {
             pe.printStackTrace();
         }
